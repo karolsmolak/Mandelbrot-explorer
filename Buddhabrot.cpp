@@ -81,20 +81,7 @@ void Buddhabrot::generate() {
         threads[i].join();
     }
 
-    minimumNumOfPointsPassingThrough = numberOfRandomPointsPerThread * NUM_OF_THREADS;
-    maximumNumOfPointsPassingThrough = 0;
-
-    for(int x = 0 ; x < windowSize ; x++){
-        for(int y = 0 ; y < windowSize ; y++){
-            if(numOfPointsPassingThrough[x][y] < minimumNumOfPointsPassingThrough){
-                minimumNumOfPointsPassingThrough = numOfPointsPassingThrough[x][y];
-            }
-            if(numOfPointsPassingThrough[x][y] > maximumNumOfPointsPassingThrough){
-                maximumNumOfPointsPassingThrough = numOfPointsPassingThrough[x][y];
-            }
-
-        }
-    }
+    updateMaxMinAfterGeneration();
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -120,4 +107,21 @@ double getRandomDoubleFromRange(double minDouble, double maxDouble)
 
 void Buddhabrot::generateAfterDragging(int dx, int dy) {
     generate();
+}
+
+void Buddhabrot::updateMaxMinAfterGeneration() {
+    minimumNumOfPointsPassingThrough = numberOfRandomPointsPerThread * NUM_OF_THREADS;
+    maximumNumOfPointsPassingThrough = 0;
+
+    for(int x = 0 ; x < windowSize ; x++){
+        for(int y = 0 ; y < windowSize ; y++){
+            if(numOfPointsPassingThrough[x][y] < minimumNumOfPointsPassingThrough){
+                minimumNumOfPointsPassingThrough = numOfPointsPassingThrough[x][y];
+            }
+            if(numOfPointsPassingThrough[x][y] > maximumNumOfPointsPassingThrough){
+                maximumNumOfPointsPassingThrough = numOfPointsPassingThrough[x][y];
+            }
+
+        }
+    }
 }

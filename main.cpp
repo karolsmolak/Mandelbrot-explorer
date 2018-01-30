@@ -8,7 +8,7 @@
 
 using namespace std::complex_literals;
 
-const int WINDOW_SIZE = 1000;
+const int WINDOW_SIZE = 500;
 
 int main() {
 

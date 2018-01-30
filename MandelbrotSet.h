@@ -15,7 +15,7 @@ public:
 
 protected:
     static const int MAX_WINDOW_SIZE = 1000;
-    static const int MAX_ITERATION = 40000;
+    static const int MAX_ITERATION = 50000;
     static const int NUM_OF_THREADS = 8;
 
     bool between(int x, int a, int b){

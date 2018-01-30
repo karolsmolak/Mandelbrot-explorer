@@ -6,12 +6,13 @@
 #include "MandelbrotSet.h"
 
 class Buddhabrot : public MandelbrotSet {
-    const int numberOfRandomPointsPerThread = 1000000;
+    const int numberOfRandomPointsPerThread = 10000000;
 
     int numOfPointsPassingThrough[MAX_WINDOW_SIZE][MAX_WINDOW_SIZE];
     int maximumNumOfPointsPassingThrough;
     int minimumNumOfPointsPassingThrough;
 
+    void updateMaxMinAfterGeneration();
     void processPoint(std::complex<double> complex);
     sf::Color getPixelColor(int x, int y) const override;
 
