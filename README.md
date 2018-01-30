@@ -16,9 +16,9 @@ sudo apt-get install libboost-all-dev
 
 ## Usage
 
-navigation: arrow keys
-scale up: +
-scale down: -
+navigation: arrow keys  
+scale up: +  
+scale down: -  
 screenshot: s
 
 note: buddhabrot generation is compute intensive so navigating may not be so easy
