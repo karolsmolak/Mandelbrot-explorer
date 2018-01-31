@@ -10,7 +10,7 @@ std::mt19937 mt(rd());
 double getRandomDoubleFromRange(double minDouble, double maxDouble);
 
 void process(Buddhabrot *buddhabrot) {
-    for (int i = 0; i < buddhabrot->numberOfRandomPointsPerThread; i++) {
+    for (int i = 0; i < buddhabrot->randomSamplesPerThread; i++) {
         std::complex<double> p(getRandomDoubleFromRange(-2.0, 2.0),
                                getRandomDoubleFromRange(-2.0, 2.0));
         buddhabrot->processPoint(p);
@@ -29,7 +29,7 @@ void Buddhabrot::processPoint(std::complex<double> p){
     int pow2 = 1;
 
     std::vector<std::pair<int, int> > visited;
-    for(int i = 0 ; i < MAX_ITERATION ; i++) {
+    for(int i = 0 ; i < maxIteration ; i++) {
         z = z * z + p;
 
         if(z == oldZ){
@@ -43,11 +43,16 @@ void Buddhabrot::processPoint(std::complex<double> p){
             visited.push_back(pixelCoordinates);
         }
 
+        pixelCoordinates = getPixelCoordinatesFromPoint(std::conj(z));
+        if(between(pixelCoordinates.first, 0, windowSize - 1) &&
+           between(pixelCoordinates.second, 0, windowSize - 1)){
+            visited.push_back(pixelCoordinates);
+        }
+
         if(norm(z) >= 4.0){
             for(auto pixelCoordinates : visited){
                 //not thread safe, but 99,9% safe
                 numOfPointsPassingThrough[pixelCoordinates.first][pixelCoordinates.second]++;
-                numOfPointsPassingThrough[pixelCoordinates.first][windowSize - 1 - pixelCoordinates.second]++;
             }
             return;
         }
@@ -71,13 +76,13 @@ void Buddhabrot::generate() {
         }
     }
 
-    std::thread threads[NUM_OF_THREADS];
+    std::thread threads[numOfThreads];
 
-    for(int i = 0 ; i < NUM_OF_THREADS ; i++){
+    for(int i = 0 ; i < numOfThreads ; i++){
         threads[i] = std::thread(process, this);
     }
 
-    for(int i = 0 ; i < NUM_OF_THREADS ; i++){
+    for(int i = 0 ; i < numOfThreads ; i++){
         threads[i].join();
     }
 
@@ -110,7 +115,7 @@ void Buddhabrot::generateAfterDragging(int dx, int dy) {
 }
 
 void Buddhabrot::updateMaxMinAfterGeneration() {
-    minimumNumOfPointsPassingThrough = numberOfRandomPointsPerThread * NUM_OF_THREADS;
+    minimumNumOfPointsPassingThrough = randomSamplesPerThread * numOfThreads;
     maximumNumOfPointsPassingThrough = 0;
 
     for(int x = 0 ; x < windowSize ; x++){

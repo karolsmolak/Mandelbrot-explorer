@@ -1,22 +1,26 @@
-#include <iostream>
 #include <SFML/Graphics.hpp>
-#include <complex>
-#include <thread>
 #include <boost/log/trivial.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 #include "StandardMandelbrotSet.h"
 #include "Buddhabrot.h"
 
-using namespace std::complex_literals;
+int windowSize;
+double step;
+double scaleFactor;
 
-const int WINDOW_SIZE = 500;
+void readConfig();
+std::shared_ptr<MandelbrotSet> getMandelbrotSet(std::string_view type);
 
 int main() {
 
+    readConfig();
+
     BOOST_LOG_TRIVIAL(info) << "Starting the application...";
 
-    Buddhabrot mandelbrotSet(WINDOW_SIZE, 2.5, std::pair<double, double>(-1.75, 1.25));
+    sf::RenderWindow window(sf::VideoMode(windowSize, windowSize), "Mandelbrot set");
 
-    sf::RenderWindow window(sf::VideoMode(WINDOW_SIZE, WINDOW_SIZE), "Mandelbrot set");
+    std::shared_ptr<MandelbrotSet> mandelbrotSet = getMandelbrotSet("standard");
 
     while(window.isOpen()){
         sf::Event event;
@@ -26,7 +30,7 @@ int main() {
                 window.close();
             } else if(event.type == sf::Event::KeyPressed){
                 if(event.key.code == sf::Keyboard::S){
-                    mandelbrotSet.saveToFile();
+                    mandelbrotSet->saveToFile();
                 }
             }
         }
@@ -34,38 +38,75 @@ int main() {
         double scale = 1;
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Add)) {
-            scale *= 0.90;
+            scale *= 1 - scaleFactor;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Subtract)) {
-            scale *= 1.10;
+            scale *= 1 + scaleFactor;
         }
 
         int dx = 0, dy = 0;
 
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            dy += 10;
+            dy += step;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-            dy -= 10;
+            dy -= step;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            dx -= 10;
+            dx -= step;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            dx += 10;
+            dx += step;
         }
 
-        if(scale < 0.99 || scale > 1.01){
-            mandelbrotSet.scale(scale);
+        if(scale != 1.0){
+            mandelbrotSet->scale(scale);
         }
 
         if(dx != 0 || dy != 0){
-            mandelbrotSet.drag(dx, dy);
+            mandelbrotSet->drag(dx, dy);
         }
 
-        window.clear(sf::Color::White);
-        window.draw(mandelbrotSet);
+        mandelbrotSet->draw(window, sf::RenderStates::Default);
+
         window.display();
     }
 
+}
+
+boost::property_tree::ptree pt;
+double viewSize;
+double x;
+double y;
+int numberOfThreads;
+
+void readConfig(){
+    boost::property_tree::ini_parser::read_ini("../config.ini", pt);
+
+    windowSize = pt.get<int>("general.windowSize");
+    viewSize = pt.get<double>("general.viewSize");
+    x = pt.get<double>("general.x");
+    y = pt.get<double>("general.y");
+    numberOfThreads = pt.get<int>("general.numberOfThreads");
+    step = pt.get<double>("general.step");
+    scaleFactor = pt.get<double>("general.scaleFactor");
+}
+
+
+std::shared_ptr<MandelbrotSet> getMandelbrotSet(std::string_view type){
+
+    if(type == "standard"){
+        return std::make_shared<StandardMandelbrotSet>(windowSize, viewSize,
+                                                       std::pair<double, double>(x, y),
+                                                       numberOfThreads,
+                                                       pt.get<int>("standard.maxIteration"));
+    } else if(type == "buddhabrot"){
+        return std::make_shared<Buddhabrot>(windowSize, viewSize,
+                                            std::pair<double, double>(x, y),
+                                            numberOfThreads,
+                                            pt.get<int>("buddhabrot.maxIteration"),
+                                            pt.get<int>("buddhabrot.randomSamplesPerThread"));
+    }
+
+    return nullptr;
 }

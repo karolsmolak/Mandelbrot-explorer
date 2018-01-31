@@ -9,10 +9,10 @@ set(EXECUTABLE_NAME "mandelbrot")
 set(SRCS
         main.cpp StandardMandelbrotSet.cpp MandelbrotSet.cpp Buddhabrot.cpp)
 
-add_compile_options(-Wall -Wextra -O2 -march=native)
+add_compile_options(-Wall -Wextra -g)
 
 find_package (Threads)
-find_package (Boost 1.66 COMPONENTS log REQUIRED)
+find_package (Boost 1.66 COMPONENTS log program_options REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 add_executable(${EXECUTABLE_NAME} ${SRCS})

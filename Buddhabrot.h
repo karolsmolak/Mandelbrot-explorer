@@ -2,13 +2,25 @@
 #define MANDELBROT_BUDDHABROT_H
 
 #include <SFML/Graphics.hpp>
-#include <mutex>
+#include <boost/multi_array.hpp>
 #include "MandelbrotSet.h"
 
 class Buddhabrot : public MandelbrotSet {
-    const int numberOfRandomPointsPerThread = 10000000;
+public:
+    Buddhabrot(int windowSize, double viewSize, std::pair<double, double> leftUpPointCoordinates, int numOfThreads,
+               int maxIteration, int randomSamplesPerThread):
+            MandelbrotSet(windowSize, viewSize, leftUpPointCoordinates, numOfThreads),
+            maxIteration(maxIteration), randomSamplesPerThread(randomSamplesPerThread){
 
-    int numOfPointsPassingThrough[MAX_WINDOW_SIZE][MAX_WINDOW_SIZE];
+        numOfPointsPassingThrough.resize(boost::extents[windowSize][windowSize]);
+        generate();
+    }
+
+protected:
+    int maxIteration;
+    int randomSamplesPerThread;
+
+    boost::multi_array<int, 2> numOfPointsPassingThrough;
     int maximumNumOfPointsPassingThrough;
     int minimumNumOfPointsPassingThrough;
 
@@ -19,13 +31,6 @@ class Buddhabrot : public MandelbrotSet {
     friend void process(Buddhabrot *);
     void generate() override;
     void generateAfterDragging(int dx, int dy) override;
-public:
-
-    Buddhabrot(int windowSize, double viewSize, std::pair<double, double> leftUpPointCoordinates):
-            MandelbrotSet(windowSize, viewSize, leftUpPointCoordinates){
-        generate();
-    }
-
 };
 
 

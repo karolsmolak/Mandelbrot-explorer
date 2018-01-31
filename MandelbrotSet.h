@@ -10,13 +10,10 @@ public:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
     void saveToFile();
 
-    MandelbrotSet(int windowSize, double viewSize, std::pair<double, double> leftUpPointCoordinates):
-            windowSize(windowSize), viewSize(viewSize), leftUpPointCoordinates(leftUpPointCoordinates){}
+    MandelbrotSet(int windowSize, double viewSize, std::pair<double, double> leftUpPointCoordinates, int numOfThreads):
+            windowSize(windowSize), viewSize(viewSize), leftUpPointCoordinates(leftUpPointCoordinates), numOfThreads(numOfThreads){}
 
 protected:
-    static const int MAX_WINDOW_SIZE = 1000;
-    static const int MAX_ITERATION = 50000;
-    static const int NUM_OF_THREADS = 8;
 
     bool between(int x, int a, int b){
         return x >= a && x <= b;
@@ -24,7 +21,10 @@ protected:
 
     int windowSize;
     double viewSize;
+
     std::pair<double, double> leftUpPointCoordinates;
+
+    int numOfThreads;
 
     std::pair<int, int> getPixelCoordinatesFromPoint(std::complex<double> p);
 
