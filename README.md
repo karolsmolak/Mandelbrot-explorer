@@ -23,7 +23,7 @@ screenshot: s
 
 note: buddhabrot generation is compute intensive so navigating may not be so easy
 
-##Screenshots
+## Screenshots
 
  ![Alt text](./screenshots/buddhabrot.jpg)
 
