@@ -1,32 +1,23 @@
-#include <iostream>
 #include <thread>
 #include <random>
+#include <mutex>
 #include <boost/log/trivial.hpp>
 #include "Buddhabrot.h"
 
-std::random_device rd;
-std::mt19937 mt(rd());
-
-double getRandomDoubleFromRange(double minDouble, double maxDouble);
-
 void process(Buddhabrot *buddhabrot) {
     for (int i = 0; i < buddhabrot->randomSamplesPerThread; i++) {
-        std::complex<double> p(getRandomDoubleFromRange(-2.0, 2.0),
-                               getRandomDoubleFromRange(-2.0, 2.0));
+        std::complex<double> p = buddhabrot->getRandomSample();
         buddhabrot->processPoint(p);
     }
 }
 
 void Buddhabrot::processPoint(std::complex<double> p){
-
     if(isInMainBulbs(p)){
         return;
     }
 
     std::complex<double> z(0,0);
     std::complex<double> oldZ = z;
-
-    int pow2 = 1;
 
     std::vector<std::pair<int, int> > visited;
     for(int i = 0 ; i < maxIteration ; i++) {
@@ -57,19 +48,22 @@ void Buddhabrot::processPoint(std::complex<double> p){
             return;
         }
 
-        if(i == pow2){
+        //check if i is a power of 2
+        if(!(i & (i - 1))){
             oldZ = z;
-            pow2 *= 2;
         }
     }
 }
 
 void Buddhabrot::generate() {
+    mt.seed(this->seed);
 
     auto start = std::chrono::system_clock::now();
 
     BOOST_LOG_TRIVIAL(info) << "Started generating buddhabrot...";
-
+    BOOST_LOG_TRIVIAL(info) << "Area: [" << leftUpPointCoordinates.first << ", " << leftUpPointCoordinates.first + viewSize << "] x ["
+                            << leftUpPointCoordinates.second - viewSize << ", " << leftUpPointCoordinates.second << "]";
+    BOOST_LOG_TRIVIAL(info) << "Seed: " << seed;
     for(int x = 0 ; x < windowSize ; x++){
         for(int y = 0 ; y < windowSize ; y++){
             numOfPointsPassingThrough[x][y] = 0;
@@ -90,24 +84,17 @@ void Buddhabrot::generate() {
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
-    BOOST_LOG_TRIVIAL(info) << "Finished, elapsed time: " << elapsed_seconds.count() << "s\n";
-
+    BOOST_LOG_TRIVIAL(info) << "Finished, elapsed time: " << elapsed_seconds.count() << "s";
 }
 
 sf::Color Buddhabrot::getPixelColor(int x, int y) const {
-    double factor =  ((double)numOfPointsPassingThrough[x][y] - minimumNumOfPointsPassingThrough) /
-                    ((double)maximumNumOfPointsPassingThrough - minimumNumOfPointsPassingThrough);
+    double factor =  (double)(numOfPointsPassingThrough[x][y] - minimumNumOfPointsPassingThrough) /
+                    (maximumNumOfPointsPassingThrough - minimumNumOfPointsPassingThrough);
 
     factor = pow(factor, 0.4);
     int scale = factor * 255.0;
 
     return sf::Color(scale, scale, scale);
-}
-
-double getRandomDoubleFromRange(double minDouble, double maxDouble)
-{
-    std::uniform_real_distribution<double> unif(minDouble, maxDouble);
-    return unif(mt);
 }
 
 void Buddhabrot::generateAfterDragging(int dx, int dy) {
@@ -129,4 +116,11 @@ void Buddhabrot::updateMaxMinAfterGeneration() {
 
         }
     }
+}
+
+std::complex<double> Buddhabrot::getRandomSample() {
+    std::unique_lock<std::mutex> lck(mtx);
+
+    std::uniform_real_distribution<double> unif(-2.0, 2.0);
+    return std::complex<double>(unif(mt), unif(mt));
 }

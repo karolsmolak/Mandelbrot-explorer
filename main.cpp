@@ -13,14 +13,13 @@ void readConfig();
 std::shared_ptr<MandelbrotSet> getMandelbrotSet(std::string_view type);
 
 int main() {
-
     readConfig();
 
     BOOST_LOG_TRIVIAL(info) << "Starting the application...";
 
     sf::RenderWindow window(sf::VideoMode(windowSize, windowSize), "Mandelbrot set");
 
-    std::shared_ptr<MandelbrotSet> mandelbrotSet = getMandelbrotSet("standard");
+    std::shared_ptr<MandelbrotSet> mandelbrotSet = getMandelbrotSet("buddhabrot");
 
     while(window.isOpen()){
         sf::Event event;
@@ -81,6 +80,7 @@ double y;
 int numberOfThreads;
 
 void readConfig(){
+    BOOST_LOG_TRIVIAL(info) << "Reading config.ini...";
     boost::property_tree::ini_parser::read_ini("../config.ini", pt);
 
     windowSize = pt.get<int>("general.windowSize");
@@ -94,6 +94,7 @@ void readConfig(){
 
 
 std::shared_ptr<MandelbrotSet> getMandelbrotSet(std::string_view type){
+    BOOST_LOG_TRIVIAL(info) << "Requested mandelbrot set of type: " << type;
 
     if(type == "standard"){
         return std::make_shared<StandardMandelbrotSet>(windowSize, viewSize,
